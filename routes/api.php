@@ -16,6 +16,8 @@ Route::prefix('v1')
        ->group(function(): void {
            Route::get('/users', 'index');
            Route::post('/users', 'store');
+           Route::patch('/users/{user}', 'update');
+           Route::delete('/users/{user}', 'destroy');
        });
     });
 

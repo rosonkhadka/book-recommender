@@ -1,0 +1,19 @@
+meta {
+  name: Update
+  type: http
+  seq: 3
+}
+
+patch {
+  url: {{baseURL}}/api/{{version}}/users/1
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "name" : "Roshan Khadka",
+    "email" : "rosonkhadka@gmail.com",
+    "gender" : "Male"
+  }
+}

@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 
-class UserStoreRequest extends FormRequest
+class UserUpdateRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -18,9 +19,12 @@ class UserStoreRequest extends FormRequest
     {
         return [
             'name' => 'required|min:3|max:255',
-            'email' => 'required|email|unique:users',
+            //'email' => [
+            //    'required',
+            //    'email',
+            //    Rule::unique('users')->ignore($this->route('user')),
+            //],
             'gender' => 'nullable',
-            'password' => ['required', Password::defaults()],
         ];
     }
 }
