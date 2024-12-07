@@ -11,6 +11,10 @@ Route::prefix('v1')
            ->prefix('auth')
            ->group(function (): void {
                Route::post('/login', 'login');
+               Route::post('/logout', 'logout');
+               Route::get('/refresh', 'refresh');
+               Route::post('/forgot-password', 'forgotPassword');
+               Route::post('/reset-password', 'resetPassword');
            });
        Route::controller(UserController::class)
        ->group(function(): void {
