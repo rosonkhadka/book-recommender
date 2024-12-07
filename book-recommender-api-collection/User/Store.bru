@@ -1,0 +1,20 @@
+meta {
+  name: Store
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseURL}}/api/{{version}}/users
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "name" : "Roshan Khadka",
+    "email" : "rosonkhadka@gmail.com",
+    "password" : "password",
+    "password_confirm" : "password"
+  }
+}
