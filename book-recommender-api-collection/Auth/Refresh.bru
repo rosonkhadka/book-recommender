@@ -4,15 +4,8 @@ meta {
   seq: 3
 }
 
-post {
-  url: {{baseURL}}/api/{{version}}/auth/logout
+get {
+  url: {{baseURL}}/api/{{version}}/auth/refresh
   body: json
   auth: inherit
-}
-
-body:json {
-  {
-    "email" : "rosonkhadka@gmail.com",
-    "password" : "password"
-  }
 }

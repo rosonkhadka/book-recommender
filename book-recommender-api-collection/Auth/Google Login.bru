@@ -1,0 +1,17 @@
+meta {
+  name: Google Login
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseURL}}/api/{{version}}/auth/google/login
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "token" : "token"
+  }
+}

@@ -16,9 +16,3 @@ body:json {
     "password" : "password"
   }
 }
-
-script:post-response {
-  const response = JSON.parse($response.body);
-  const token = response.data.token.access_token;
-  $environment.set("token", token);
-}
