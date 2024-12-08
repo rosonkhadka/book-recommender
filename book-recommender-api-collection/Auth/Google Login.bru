@@ -1,0 +1,26 @@
+meta {
+  name: Google Login
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseURL}}/api/{{version}}/auth/google/login
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "token" : "token"
+  }
+}
+
+script:post-response {
+  if(res.status == 200){
+    const token = res.body.data.token.access_token  
+    bru.setEnvVar('token',token)
+  }
+  
+  
+}

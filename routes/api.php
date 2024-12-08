@@ -11,6 +11,7 @@ Route::prefix('v1')
            ->prefix('auth')
            ->group(function (): void {
                Route::post('/login', 'login');
+               Route::post('/google/login', 'googleLogin');
                Route::post('/logout', 'logout');
                Route::get('/refresh', 'refresh');
                Route::post('/forgot-password', 'forgotPassword');

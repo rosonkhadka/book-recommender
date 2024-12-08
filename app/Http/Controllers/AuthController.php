@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ForgotPasswordRequest;
+use App\Http\Requests\GoogleLoginRequest;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\ResetPasswordRequest;
 use App\Models\User;
+use App\Services\GoogleLogin;
 use App\Traits\ApiResponse;
 use Auth;
 use DB;
@@ -23,6 +25,7 @@ use Illuminate\Support\Facades\Password;
 use RateLimiter;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
+use Google_Client;
 
 class AuthController extends Controller implements HasMiddleware
 {
@@ -30,7 +33,7 @@ class AuthController extends Controller implements HasMiddleware
     public static function middleware(): array
     {
         return [
-            new Middleware('auth:api', except: ['login']),
+            new Middleware('auth:api', except: ['login', 'googleLogin', 'forgotPassword']),
         ];
     }
 
@@ -58,6 +61,19 @@ class AuthController extends Controller implements HasMiddleware
             return $this->errorResponse($th);
         }
     }
+
+    public function googleLogin(GoogleLoginRequest $request, GoogleLogin $service): JsonResponse
+    {
+        try {
+            $data = $request->validated();
+            $user = $service->handle($data);
+            $token = auth()->login($user);
+            return $this->successResponse($this->respondWithToken($token));
+        } catch (Throwable $th) {
+            return $this->errorResponse($th);
+        }
+    }
+
 
     public function logout(): JsonResponse
     {
