@@ -1,0 +1,18 @@
+meta {
+  name: Resend Email Verification
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{baseURL}}/api/{{version}}/auth/email/verification-notification
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "email" : "zxc@gmail.com",
+    "token" : "f77464cd347c91ba1c50bb9ac0d1b12901e4bc6e"
+  }
+}
