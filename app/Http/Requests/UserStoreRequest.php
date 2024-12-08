@@ -20,7 +20,11 @@ class UserStoreRequest extends FormRequest
             'name' => 'required|min:3|max:255',
             'email' => 'required|email|unique:users',
             'gender' => 'nullable',
-            'password' => ['required', Password::defaults()],
+            'password' => [
+                'required',
+                'confirmed',
+                Password::defaults()
+            ],
         ];
     }
 }

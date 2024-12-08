@@ -11,7 +11,7 @@ use Google_Client;
 
 class GoogleLogin
 {
-    public function handle($data): ?User
+    public function googleLogin(Array $data): ?User
     {
         $client = new Google_Client(['client_id' => config('services.google.client_id')]);
         try{

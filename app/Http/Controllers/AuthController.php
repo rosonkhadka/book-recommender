@@ -10,6 +10,7 @@ use App\Http\Requests\LoginRequest;
 use App\Http\Requests\ResetPasswordRequest;
 use App\Models\User;
 use App\Services\GoogleLogin;
+use App\Services\ResetPassword;
 use App\Traits\ApiResponse;
 use Auth;
 use DB;
@@ -66,7 +67,7 @@ class AuthController extends Controller implements HasMiddleware
     {
         try {
             $data = $request->validated();
-            $user = $service->handle($data);
+            $user = $service->googleLogin($data);
             $token = auth()->login($user);
             return $this->successResponse($this->respondWithToken($token));
         } catch (Throwable $th) {
@@ -86,68 +87,23 @@ class AuthController extends Controller implements HasMiddleware
         return $this->successResponse($this->respondWithToken(Auth::refresh(true, true)));
     }
 
-    public function forgotPassword(ForgotPasswordRequest $request): JsonResponse
+    public function forgotPassword(ForgotPasswordRequest $request, ResetPassword $service): JsonResponse
     {
-        $data = $request->validated();
         try {
-            if (RateLimiter::tooManyAttempts(request()->ip(), 5)) {
-                throw new ThrottleRequestsException(message: 'Too many attempts.', code: 429);
-            }
-
-            $status = Password::sendResetLink([
-                'email' => $data['email']
-            ]);
-
-            if (Password::RESET_LINK_SENT !== $status) {
-                RateLimiter::hit(request()->ip(), 5 * 60);
-
-                switch ($status) {
-                    case Password::INVALID_TOKEN:
-                        $message = 'The provided password reset token is invalid!';
-                        $statusCode = Response::HTTP_UNPROCESSABLE_ENTITY;
-                        throw new Exception($message, $statusCode);
-                    case Password::RESET_THROTTLED:
-                        $message = 'We have already sent a password reset link to your email address. Please check your inbox!';
-                        $statusCode = Response::HTTP_TOO_MANY_REQUESTS;
-                        throw new Exception($message, $statusCode);
-                }
-            }
-
-            RateLimiter::clear(request()->ip());
+            $data = $request->validated();
+            $service->forgotPassword($data);
             return $this->successResponse();
-
         } catch (Throwable $th) {
             return $this->errorResponse($th);
         }
     }
 
-    public function resetPassword(ResetPasswordRequest $request)
+    public function resetPassword(ResetPasswordRequest $request, ResetPassword $service): JsonResponse
     {
-        $data = $request->validated();
         try {
-            if (RateLimiter::tooManyAttempts(request()->ip(), 5)) {
-                throw new ThrottleRequestsException(message: 'Too many attempts.', code: 429);
-            }
-            if ( ! $this->validatePasswordResetToken($data)) {
-                RateLimiter::hit(request()->ip(), 5 * 60);
-                throw new Exception('Invalid Token', 422);
-            }
-            $status = Password::reset(
-                $data->toArray(),
-                function (User $user, string $password): void {
-                    $user->forceFill([
-                        'password' => Hash::make($password),
-                    ]);
-
-                    $user->save();
-
-                    //event(new PasswordReset($user));
-                }
-            );
-            if (Password::PASSWORD_RESET !== $status) {
-                throw new Exception('Oops! Something went wrong while trying to reset password', 422);
-            }
-            RateLimiter::clear(request()->ip());
+            $data = $request->validated();
+            $service->resetPassword($data);
+            return $this->successResponse();
         } catch (Throwable $th) {
             return $this->errorResponse($th);
         }
@@ -168,13 +124,5 @@ class AuthController extends Controller implements HasMiddleware
         ];
     }
 
-    protected function validatePasswordResetToken($data): bool
-    {
-        $token = DB::table('password_reset_tokens')
-            ->where('email', $data['email'])
-            ->value('token');
-
-        return Hash::check($data['token'], $token);
-    }
 
 }
