@@ -10,13 +10,21 @@ use App\Supports\HandlePagination;
 use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Routing\Controllers\Middleware;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
 use Symfony\Component\HttpFoundation\JsonResponse;
-
-class UserController extends Controller
+use Illuminate\Routing\Controllers\HasMiddleware;
+class UserController extends Controller implements HasMiddleware
 {
     use ApiResponse;
+
+    public static function middleware(): array
+    {
+        return [
+            new Middleware('auth:api',  except: ['store']),
+        ];
+    }
     public function index(): AnonymousResourceCollection
     {
         $user = QueryBuilder::for(User::query())

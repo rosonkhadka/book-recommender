@@ -9,3 +9,12 @@ get {
   body: json
   auth: inherit
 }
+
+script:post-response {
+  if(res.status == 200){
+    const token = res.body.data.token.access_token  
+    bru.setEnvVar('token',token)
+  }
+  
+  
+}

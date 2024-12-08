@@ -7,7 +7,11 @@ meta {
 post {
   url: {{baseURL}}/api/{{version}}/users
   body: json
-  auth: none
+  auth: inherit
+}
+
+headers {
+  : 
 }
 
 body:json {
