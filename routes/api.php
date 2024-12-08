@@ -16,6 +16,8 @@ Route::prefix('v1')
                Route::get('/refresh', 'refresh');
                Route::post('/forgot-password', 'forgotPassword');
                Route::post('/reset-password', 'resetPassword');
+               Route::post('/email/verify', 'verifyEmail');
+               Route::get('/email/verification-notification', 'resendVerificationEmail');
            });
        Route::controller(UserController::class)
        ->group(function(): void {

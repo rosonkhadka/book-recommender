@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\EmailVerificationRequest;
 use App\Http\Requests\ForgotPasswordRequest;
 use App\Http\Requests\GoogleLoginRequest;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\ResetPasswordRequest;
+use App\Mail\EmailVerificationMail;
 use App\Models\User;
 use App\Services\GoogleLogin;
 use App\Services\ResetPassword;
@@ -22,6 +24,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Password;
 use RateLimiter;
 use Symfony\Component\HttpFoundation\Response;
@@ -31,18 +34,20 @@ use Google_Client;
 class AuthController extends Controller implements HasMiddleware
 {
     use ApiResponse;
+
     public static function middleware(): array
     {
         return [
-            new Middleware('auth:api', except: ['login', 'googleLogin', 'forgotPassword', 'resetPassword', 'refresh']),
+            new Middleware('auth:api', except: ['login', 'googleLogin', 'forgotPassword', 'resetPassword', 'refresh', 'verifyEmail']),
+            new Middleware('throttle:6,1', only: ['resendVerificationEmail']),
         ];
     }
 
     public function login(LoginRequest $request): JsonResponse
     {
-        try{
+        try {
             $data = $request->validated();
-            if (RateLimiter::tooManyAttempts(request()->ip(), 5)) {
+            if(RateLimiter::tooManyAttempts(request()->ip(), 5)) {
                 throw new ThrottleRequestsException(message: 'Too many attempts.', code: 429);
             }
 
@@ -52,13 +57,13 @@ class AuthController extends Controller implements HasMiddleware
                     'password' => $data['password'],
                 ],
             );
-            if ( ! $token) {
+            if(!$token) {
                 RateLimiter::hit(request()->ip(), 5 * 60);
                 throw new AuthenticationException('Invalid Credentials');
             }
             RateLimiter::clear(request()->ip());
             return $this->successResponse($this->respondWithToken($token));
-        }catch(Throwable $th){
+        } catch(Throwable $th) {
             return $this->errorResponse($th);
         }
     }
@@ -70,7 +75,7 @@ class AuthController extends Controller implements HasMiddleware
             $user = $service->googleLogin($data);
             $token = auth()->login($user);
             return $this->successResponse($this->respondWithToken($token));
-        } catch (Throwable $th) {
+        } catch(Throwable $th) {
             return $this->errorResponse($th);
         }
     }
@@ -93,7 +98,7 @@ class AuthController extends Controller implements HasMiddleware
             $data = $request->validated();
             $service->forgotPassword($data);
             return $this->successResponse();
-        } catch (Throwable $th) {
+        } catch(Throwable $th) {
             return $this->errorResponse($th);
         }
     }
@@ -104,9 +109,48 @@ class AuthController extends Controller implements HasMiddleware
             $data = $request->validated();
             $service->resetPassword($data);
             return $this->successResponse();
-        } catch (Throwable $th) {
+        } catch(Throwable $th) {
             return $this->errorResponse($th);
         }
+    }
+
+    public function verifyEmail(EmailVerificationRequest $request): JsonResponse
+    {
+        try {
+            $data = $request->validated();
+            $query = DB::table('user_email_verification')
+                ->where([
+                    'email' => $data['email'],
+                    'token' => $data['token']
+                ]);
+            if(!$query->exists()) {
+                return $this->errorResponse('Email could not be verified');
+            }
+            $query->delete();
+            User::where('email', $data['email'])->update(['email_verified_at' => now()]);
+            return $this->successResponse('Email Verified Successfully');
+        } catch(Throwable $th) {
+            return $this->errorResponse($th);
+        }
+    }
+
+    public function resendVerificationEmail(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        $baseUrl = config('app.frontend_url');
+        $token = bin2hex(random_bytes(20));
+        $fullUrl = $baseUrl . '/verify-email?email=' . $user->email . '&token=' . $token;
+        if($user->hasVerifiedEmail()){
+            return $this->successResponse('User already verified');
+        }
+        DB::table('user_email_verification')->where('email', $user->email)->delete();
+        DB::table('user_email_verification')->insert([
+            'email' => $user->email,
+            'token' => $token,
+            'created_at' => now(),
+        ]);
+        Mail::to($user)->send(new EmailVerificationMail($fullUrl));
+        return $this->successResponse('Verification link sent!');
     }
 
     protected function respondWithToken($token): array

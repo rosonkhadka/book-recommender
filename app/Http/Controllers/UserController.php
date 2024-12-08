@@ -5,16 +5,22 @@ namespace App\Http\Controllers;
 use App\Http\Requests\UserStoreRequest;
 use App\Http\Requests\UserUpdateRequest;
 use App\Http\Resources\UserDetailResource;
+use App\Mail\EmailVerificationMail;
 use App\Models\User;
 use App\Supports\HandlePagination;
 use App\Traits\ApiResponse;
-use Illuminate\Http\Request;
+use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Routing\Controllers\Middleware;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\URL;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Illuminate\Routing\Controllers\HasMiddleware;
+use Throwable;
+
 class UserController extends Controller implements HasMiddleware
 {
     use ApiResponse;
@@ -23,6 +29,7 @@ class UserController extends Controller implements HasMiddleware
     {
         return [
             new Middleware('auth:api',  except: ['store']),
+            new Middleware('verified',  except: ['store']),
         ];
     }
     public function index(): AnonymousResourceCollection
@@ -39,15 +46,21 @@ class UserController extends Controller implements HasMiddleware
         return UserDetailResource::collection($user);
     }
 
-    public function store(UserStoreRequest $request): JsonResponse
+    public function store(UserStoreRequest $request): JsonResponse|Throwable
     {
-        $data = $request->Validated();
-        $user =  User::create($data);
-        return $this->successResponse([
-            'success' => true,
-            'message' => 'User Successfully Created',
-            'payload' => new UserDetailResource($user),
-        ]);
+        try{
+            $data = $request->Validated();
+            $user =  User::create($data);
+            $this->sendVerificationEmail($user);
+
+            return $this->successResponse([
+                'success' => true,
+                'message' => 'User Successfully Created',
+                'payload' => new UserDetailResource($user),
+            ]);
+        }catch(Throwable $th){
+            return $this->errorResponse($th);
+        }
     }
 
     public function update(UserUpdateRequest $request, User $user): JsonResponse
@@ -71,5 +84,18 @@ class UserController extends Controller implements HasMiddleware
             'message' => 'User Successfully Deleted',
             'payload' => new UserDetailResource($user),
         ]);
+    }
+
+    private function sendVerificationEmail(User $user): void
+    {
+        $baseUrl = config('app.frontend_url');
+        $token = bin2hex(random_bytes(20));
+        $fullUrl = $baseUrl . '/verify-email?email=' . $user->email . '&token=' . $token;
+        DB::table('user_email_verification')->insert([
+            'email' => $user->email,
+            'token' => $token,
+            'created_at' => now(),
+        ]);
+        Mail::to($user)->send(new EmailVerificationMail($fullUrl));
     }
 }
