@@ -22,6 +22,7 @@ Route::prefix('v1')
        Route::controller(UserController::class)
        ->group(function(): void {
            Route::get('/users', 'index');
+           Route::get('/users/{user}', 'show');
            Route::post('/users', 'store');
            Route::patch('/users/{user}', 'update');
            Route::delete('/users/{user}', 'destroy');

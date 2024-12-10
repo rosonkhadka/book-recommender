@@ -63,6 +63,11 @@ class UserController extends Controller implements HasMiddleware
         }
     }
 
+    public function show(User $user): UserDetailResource
+    {
+        return new UserDetailResource($user);
+    }
+
     public function update(UserUpdateRequest $request, User $user): JsonResponse
     {
         $data = $request->Validated();
