@@ -95,7 +95,7 @@ class UserController extends Controller implements HasMiddleware
     {
         $baseUrl = config('app.frontend_url');
         $token = bin2hex(random_bytes(20));
-        $fullUrl = $baseUrl . '/verify-email?email=' . $user->email . '&token=' . $token;
+        $fullUrl = $baseUrl . '/user-verified?email=' . $user->email . '&token=' . $token;
         DB::table('user_email_verification')->insert([
             'email' => $user->email,
             'token' => $token,
