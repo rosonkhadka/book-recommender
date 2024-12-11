@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\UserPreferenceRequest;
 use App\Http\Requests\UserStoreRequest;
 use App\Http\Requests\UserUpdateRequest;
 use App\Http\Resources\UserDetailResource;
@@ -28,10 +29,12 @@ class UserController extends Controller implements HasMiddleware
     public static function middleware(): array
     {
         return [
-            new Middleware('auth:api',  except: ['store']),
-            new Middleware('verified',  except: ['store']),
+            new Middleware('auth:api', except: ['store']),
+            new Middleware('verified', except: ['store']),
+            new Middleware('check.user.preference', except: ['store', 'preference']),
         ];
     }
+
     public function index(): AnonymousResourceCollection
     {
         $user = QueryBuilder::for(User::query())
@@ -48,9 +51,9 @@ class UserController extends Controller implements HasMiddleware
 
     public function store(UserStoreRequest $request): JsonResponse|Throwable
     {
-        try{
+        try {
             $data = $request->Validated();
-            $user =  User::create($data);
+            $user = User::create($data);
             $this->sendVerificationEmail($user);
 
             return $this->successResponse([
@@ -58,7 +61,7 @@ class UserController extends Controller implements HasMiddleware
                 'message' => 'User Successfully Created',
                 'payload' => new UserDetailResource($user),
             ]);
-        }catch(Throwable $th){
+        } catch(Throwable $th) {
             return $this->errorResponse($th);
         }
     }
@@ -87,6 +90,21 @@ class UserController extends Controller implements HasMiddleware
         return $this->successResponse([
             'success' => true,
             'message' => 'User Successfully Deleted',
+            'payload' => new UserDetailResource($user),
+        ]);
+    }
+
+    public function preference(UserPreferenceRequest $request, User $user)
+    {
+        $data = $request->validated();
+
+        $user->categories()->sync($data['category_ids']);
+
+        $user->books()->sync($data['book_ids']);
+
+        return $this->successResponse([
+            'success' => true,
+            'message' => 'User preference Added',
             'payload' => new UserDetailResource($user),
         ]);
     }

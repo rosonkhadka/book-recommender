@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\Category;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -41,4 +42,15 @@ class UserFactory extends Factory
             'email_verified_at' => null,
         ]);
     }
+
+    //public function configure(): UserFactory|Factory
+    //{
+    //    return $this->afterCreating(function ($user) {
+    //        $category = Category::inRandomOrder()->first();
+    //
+    //        if ($category) {
+    //            $user->categories()->attach($category->id);
+    //        }
+    //    });
+    //}
 }
