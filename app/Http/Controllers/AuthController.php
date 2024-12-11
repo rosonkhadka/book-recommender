@@ -9,6 +9,7 @@ use App\Http\Requests\ForgotPasswordRequest;
 use App\Http\Requests\GoogleLoginRequest;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\ResetPasswordRequest;
+use App\Http\Resources\UserDetailResource;
 use App\Mail\EmailVerificationMail;
 use App\Models\User;
 use App\Services\GoogleLogin;
@@ -157,7 +158,7 @@ class AuthController extends Controller implements HasMiddleware
     {
         return [
             'success' => true,
-            'payload' => Auth::user(),
+            'payload' => new UserDetailResource(Auth::user()),
             'token' => [
                 'access_token' => $token,
                 'token_type' => 'bearer',

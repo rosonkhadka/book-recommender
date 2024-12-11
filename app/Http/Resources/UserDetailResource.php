@@ -11,6 +11,9 @@ class UserDetailResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
+        $hasBooks = $this->books->isNotEmpty();
+        $hasCategories = $this->categories->isNotEmpty();
+
         return [
             'id' => $this->id,
             'name' => $this->name,
@@ -20,6 +23,11 @@ class UserDetailResource extends JsonResource
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
             'email_verified_at' => $this->email_verified_at,
+            'user_preference' => [
+                'status' => $hasBooks && $hasCategories,
+                'books' => $hasBooks ? $this->books->pluck('id') : null,
+                'categories' => $hasCategories ? $this->categories->pluck('id') : null,
+            ],
         ];
     }
 }

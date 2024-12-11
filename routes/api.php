@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\BookController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -26,6 +27,13 @@ Route::prefix('v1')
            Route::post('/users', 'store');
            Route::patch('/users/{user}', 'update');
            Route::delete('/users/{user}', 'destroy');
+           Route::post('/users/{user}/preference', 'preference');
        });
+
+        Route::controller(BookController::class)
+            ->group(function(): void {
+                Route::get('/books', 'index');
+                Route::get('/books/{book}', 'show');
+            });
     });
 
