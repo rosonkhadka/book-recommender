@@ -24,6 +24,8 @@ class Book extends Model
     //  books?filter[categories]=Fiction,Adventure
     public function scopeCategories($query, $categoryNames)
     {
+        $categoryNames = (array) $categoryNames;
+
         return $query->whereHas('categories', function ($query) use ($categoryNames) {
             $query->whereIn('name', $categoryNames);
         });
