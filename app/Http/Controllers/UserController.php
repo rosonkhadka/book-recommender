@@ -100,7 +100,11 @@ class UserController extends Controller implements HasMiddleware
 
         $user->categories()->sync($data['category_ids']);
 
-        $user->books()->sync($data['book_ids']);
+        $bookData = collect($data['books'])->mapWithKeys(function ($book) {
+            return [$book['id'] => ['rating' => $book['rating']]];
+        })->toArray();
+
+        $user->books()->sync($bookData);
 
         return $this->successResponse([
             'success' => true,

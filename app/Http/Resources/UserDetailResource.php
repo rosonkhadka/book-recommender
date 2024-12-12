@@ -25,7 +25,14 @@ class UserDetailResource extends JsonResource
             'email_verified_at' => $this->email_verified_at,
             'user_preference' => [
                 'status' => $hasBooks && $hasCategories,
-                'books' => $hasBooks ? $this->books->pluck('id') : null,
+                'books' => $hasBooks
+                    ? $this->books->map(function ($book) {
+                        return [
+                            'id' => $book->id,
+                            'rating' => $book->pivot->rating ?? null,
+                        ];
+                    })
+                    : null,
                 'categories' => $hasCategories ? $this->categories->pluck('id') : null,
             ],
         ];

@@ -4,16 +4,8 @@ meta {
   seq: 6
 }
 
-post {
-  url: {{baseURL}}/api/{{version}}/users/1/preference
+get {
+  url: {{baseURL}}/api/{{version}}/categories
   body: json
   auth: inherit
-}
-
-body:json {
-  {
-      "category_ids": [15, 2, 3],
-      "book_ids": [4, 5, 6]
-  }
-  
 }
