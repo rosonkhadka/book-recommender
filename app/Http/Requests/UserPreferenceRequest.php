@@ -16,8 +16,11 @@ class UserPreferenceRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'category_ids' => 'required|array|exists:categories,id',
-            'book_ids' => 'required|array|exists:books,id',
+            'category_ids' => 'required|array',
+            'category_ids.*' => 'exists:categories,id',
+            'books' => 'required|array',
+            'books.*.id' => 'required|exists:books,id',
+            'books.*.rating' => 'required|integer|min:1|max:5',
         ];
     }
 }

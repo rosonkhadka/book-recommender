@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BookController;
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -34,6 +35,11 @@ Route::prefix('v1')
             ->group(function(): void {
                 Route::get('/books', 'index');
                 Route::get('/books/{book}', 'show');
+            });
+
+        Route::controller(CategoryController::class)
+            ->group(function(): void {
+                Route::get('/categories', 'index');
             });
     });
 

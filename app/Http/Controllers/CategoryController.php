@@ -3,19 +3,19 @@
 namespace App\Http\Controllers;
 
 use App\Http\Resources\BookDetailResource;
+use App\Http\Resources\CategoryResource;
 use App\Models\Book;
+use App\Models\Category;
 use App\Supports\HandlePagination;
-use App\Traits\ApiResponse;
+use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
 
-class BookController extends Controller implements HasMiddleware
+class CategoryController extends Controller implements HasMiddleware
 {
-    use ApiResponse;
-
     public static function middleware(): array
     {
         return [
@@ -26,25 +26,14 @@ class BookController extends Controller implements HasMiddleware
 
     public function index(): AnonymousResourceCollection
     {
-        $books = QueryBuilder::for(Book::query())
+        $categories = QueryBuilder::for(Category::query())
             ->allowedFilters([
                 AllowedFilter::exact('id'),
-                'title',
-                'published_date',
-                'language',
-                'isbn',
-                AllowedFilter::scope('categories')
+                'name'
             ])
-            ->allowedIncludes(['categories'])
+            ->allowedIncludes(['books'])
             ->paginate((new HandlePagination())(request('perPage')))
             ->appends(request()->query());
-        return BookDetailResource::collection($books);
+        return CategoryResource::collection($categories);
     }
-
-    public function show(Book $book): BookDetailResource
-    {
-        $book->load('categories');
-        return new BookDetailResource($book);
-    }
-
 }

@@ -47,7 +47,8 @@ class User extends Authenticatable implements JWTSubject
 
     public function books(): BelongsToMany
     {
-        return $this->belongsToMany(Book::class);
+        return $this->belongsToMany(Book::class)
+            ->withPivot('rating');
     }
     public function categories(): MorphToMany
     {

@@ -5,13 +5,12 @@ meta {
 }
 
 get {
-  url: {{baseURL}}/api/{{version}}/books?include=categories
+  url: {{baseURL}}/api/{{version}}/categories
   body: none
   auth: none
 }
 
 params:query {
-  include: categories
   ~filter[id]: unde
   ~filter[title]: this is a title
   ~filter[language]: en
