@@ -14,6 +14,7 @@ class UserDetailResource extends JsonResource
         $hasBooks = $this->books->isNotEmpty();
         $hasCategories = $this->categories->isNotEmpty();
 
+
         return [
             'id' => $this->id,
             'name' => $this->name,

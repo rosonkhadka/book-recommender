@@ -158,7 +158,7 @@ class AuthController extends Controller implements HasMiddleware
     {
         return [
             'success' => true,
-            'payload' => new UserDetailResource(Auth::user()),
+            'payload' => Auth::user() ? new UserDetailResource(Auth::user()) : '',
             'token' => [
                 'access_token' => $token,
                 'token_type' => 'bearer',
